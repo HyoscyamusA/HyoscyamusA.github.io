@@ -1,44 +1,48 @@
-name: Deploy Jekyll with Chirpy
+name: Deploy Jekyll site to Pages
 
 on:
   push:
     branches:
-      - main  # 你也可以改成你启用 GitHub Pages 的分支
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.2
+          ruby-version: '3.2'
 
       - name: Install dependencies
         run: |
           gem install bundler
           bundle install
 
-      - name: Build the site
+      - name: Build site
         run: bundle exec jekyll build
 
-      - name: Upload static site files
-        uses: actions/upload-artifact@v2
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          name: github-pages
           path: ./_site
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
